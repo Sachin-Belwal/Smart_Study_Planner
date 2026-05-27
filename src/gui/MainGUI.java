@@ -7,9 +7,9 @@ import model.StudySession;
 import storage.FileManager;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainGUI extends JFrame {
@@ -19,7 +19,8 @@ public class MainGUI extends JFrame {
     private JTextField examDaysField;
     private JTextField studyHoursField;
 
-    private JTextArea outputArea;
+    private JTable planTable;
+    private DefaultTableModel tableModel;
 
     private List<Topic> topics;
 
@@ -33,114 +34,123 @@ public class MainGUI extends JFrame {
         // ================= FRAME =================
 
         setTitle("Smart Adaptive Study Planner");
-        setSize(700, 500);
+
+        setSize(900, 650);
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         setLocationRelativeTo(null);
 
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout());
 
-        // ================= TITLE =================
+        // ================= HEADER =================
 
-        JLabel titleLabel = new JLabel(
-                "Smart Adaptive Study Planner",
-                JLabel.CENTER
+        JPanel headerPanel = new JPanel();
+
+        headerPanel.setBackground(new Color(25, 45, 85));
+
+        JLabel title = new JLabel(
+                "Smart Adaptive Study Planner"
         );
 
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setForeground(Color.WHITE);
 
-        add(titleLabel, BorderLayout.NORTH);
+        title.setFont(new Font("Arial", Font.BOLD, 28));
 
-        // ================= INPUT PANEL =================
+        headerPanel.add(title);
+
+        add(headerPanel, BorderLayout.NORTH);
+
+        // ================= LEFT INPUT PANEL =================
 
         JPanel inputPanel = new JPanel();
 
-        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        inputPanel.setLayout(new GridLayout(10, 1, 10, 10));
 
         inputPanel.setBorder(
-                BorderFactory.createTitledBorder("Enter Topic Details")
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)
         );
 
-        // Topic Name
-        inputPanel.add(new JLabel("Topic Name:"));
+        inputPanel.setBackground(Color.WHITE);
+
+        // Topic
+        inputPanel.add(new JLabel("Topic Name"));
 
         topicField = new JTextField();
 
         inputPanel.add(topicField);
 
         // Confidence
-        inputPanel.add(new JLabel("Confidence (1-10):"));
+        inputPanel.add(new JLabel("Confidence (1-10)"));
 
         confidenceField = new JTextField();
 
         inputPanel.add(confidenceField);
 
         // Exam Days
-        inputPanel.add(new JLabel("Exam in Days:"));
+        inputPanel.add(new JLabel("Exam in Days"));
 
         examDaysField = new JTextField();
 
         inputPanel.add(examDaysField);
 
         // Study Hours
-        inputPanel.add(new JLabel("Study Hours:"));
+        inputPanel.add(new JLabel("Study Hours"));
 
         studyHoursField = new JTextField();
 
         inputPanel.add(studyHoursField);
 
-        // ================= BUTTON PANEL =================
+        // ================= BUTTONS =================
 
-        JPanel buttonPanel = new JPanel();
-
-        buttonPanel.setLayout(new FlowLayout());
-
-        JButton addButton = new JButton("Add Topic");
+        JButton addButton =
+                createStyledButton("Add Topic");
 
         JButton generateButton =
-                new JButton("Generate Plan");
+                createStyledButton("Generate Plan");
 
         JButton newPlanButton =
-                new JButton("New Plan");
+                createStyledButton("New Plan");
 
-        buttonPanel.add(addButton);
+        inputPanel.add(addButton);
 
-        buttonPanel.add(generateButton);
+        inputPanel.add(generateButton);
 
-        buttonPanel.add(newPlanButton);
+        inputPanel.add(newPlanButton);
 
-        // ================= CENTER PANEL =================
+        add(inputPanel, BorderLayout.WEST);
 
-        JPanel centerPanel = new JPanel();
+        // ================= TABLE =================
 
-        centerPanel.setLayout(new BorderLayout());
+        String[] columns = {
+                "Topic",
+                "Study Duration"
+        };
 
-        centerPanel.add(inputPanel, BorderLayout.NORTH);
+        tableModel = new DefaultTableModel(columns, 0);
 
-        centerPanel.add(buttonPanel, BorderLayout.CENTER);
+        planTable = new JTable(tableModel);
 
-        outputArea = new JTextArea();
+        planTable.setRowHeight(30);
 
-outputArea.setEditable(false);
+        planTable.setFont(
+                new Font("Arial", Font.PLAIN, 16)
+        );
 
-outputArea.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        planTable.getTableHeader().setFont(
+                new Font("Arial", Font.BOLD, 16)
+        );
 
-JScrollPane scrollPane =
-        new JScrollPane(outputArea);
+        JScrollPane scrollPane =
+                new JScrollPane(planTable);
 
-scrollPane.setBorder(
-        BorderFactory.createTitledBorder("Generated Study Plan")
-);
+        scrollPane.setBorder(
+                BorderFactory.createTitledBorder(
+                        "Today's Study Plan"
+                )
+        );
 
-// Split screen vertically
-JSplitPane splitPane = new JSplitPane(
-        JSplitPane.VERTICAL_SPLIT,
-        centerPanel,
-        scrollPane
-);
-
-splitPane.setDividerLocation(250);
-
-add(splitPane, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
 
         // ================= BUTTON ACTIONS =================
 
@@ -153,19 +163,41 @@ add(splitPane, BorderLayout.CENTER);
         setVisible(true);
     }
 
+    // ================= STYLED BUTTON =================
+
+    private JButton createStyledButton(String text) {
+
+        JButton button = new JButton(text);
+
+        button.setBackground(new Color(45, 95, 190));
+
+        button.setForeground(Color.WHITE);
+
+        button.setFocusPainted(false);
+
+        button.setFont(new Font("Arial", Font.BOLD, 15));
+
+        return button;
+    }
+
     // ================= ADD TOPIC =================
 
     private void addTopic() {
 
         try {
 
-            String topicName = topicField.getText();
+            String topicName =
+                    topicField.getText();
 
             int confidence =
-                    Integer.parseInt(confidenceField.getText());
+                    Integer.parseInt(
+                            confidenceField.getText()
+                    );
 
             int examDays =
-                    Integer.parseInt(examDaysField.getText());
+                    Integer.parseInt(
+                            examDaysField.getText()
+                    );
 
             Topic topic = new Topic(
                     topicName,
@@ -184,7 +216,6 @@ add(splitPane, BorderLayout.CENTER);
                     "Topic Added Successfully!"
             );
 
-            // Clear fields
             topicField.setText("");
 
             confidenceField.setText("");
@@ -207,7 +238,9 @@ add(splitPane, BorderLayout.CENTER);
         try {
 
             int studyHours =
-                    Integer.parseInt(studyHoursField.getText());
+                    Integer.parseInt(
+                            studyHoursField.getText()
+                    );
 
             PlannerEngine planner =
                     new PlannerEngine();
@@ -224,18 +257,17 @@ add(splitPane, BorderLayout.CENTER);
                             studyHours
                     );
 
-            outputArea.setText("");
+            // Clear old rows
+            tableModel.setRowCount(0);
 
-            outputArea.append("Today's Study Plan\n");
-
-            outputArea.append(
-                    "============================\n\n"
-            );
-
+            // Add new rows
             for (StudySession s : plan) {
 
-                outputArea.append(
-                        s.toString() + "\n"
+                tableModel.addRow(
+                        new Object[]{
+                                s.getTopicName(),
+                                s.getDuration() + " mins"
+                        }
                 );
             }
 
@@ -256,7 +288,7 @@ add(splitPane, BorderLayout.CENTER);
 
         fileManager.saveTopics(topics);
 
-        outputArea.setText("");
+        tableModel.setRowCount(0);
 
         topicField.setText("");
 
